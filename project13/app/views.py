@@ -4,7 +4,9 @@ from app.forms import *
 from django.http import HttpResponse
 from django.core.mail import send_mail
 from django.contrib.auth import authenticate
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
+from random import randint
 
 # Create your views here.
 
@@ -58,6 +60,8 @@ def user_login(request: HttpRequest) -> HttpResponse:
             return HttpResponse('Invalid Credentials')
     return render(request, 'user_login.html')
 
+
+@login_required
 def user_profile(request):
     try:
         un = request.session['username']
@@ -73,3 +77,48 @@ def home(request):
     request.session.modified = True
     return render(request, 'home.html')
 
+
+@login_required
+def user_logout(request):
+    logout(request)
+    return render(request, 'home.html')
+
+
+def changepassword(request):
+    if request.method == 'POST':
+        pw = request.POST.get('pw')
+        cpw = request.POST.get('cpw')
+        if pw == cpw:
+            otp = randint(100000, 999999)
+            request.session['pw'] = pw
+            request.session['otp'] = otp
+            un = request.session.get('username')
+            UO = User.objects.get(username=un)
+            email = UO.email
+            send_mail(
+                "RE:- OTP for changingpassword",
+                f"The OTP to changepassword is : {otp}",
+                'likith.qsp@gmail.com',
+                [email],
+                fail_silently=False
+            )
+            return render(request, 'otp.html')
+        return HttpResponse('Password is not matching')
+
+    return render(request, 'changepassword.html')
+
+
+def otp(request):
+    if request.method == 'POST':
+        UOTP = request.POST.get('otp')
+        GOTP = request.session.get('otp')
+        print(GOTP)
+        if UOTP == str(GOTP):
+            un = request.session.get('username')
+            UO = User.objects.get(username=un)
+            pw = request.session.get('pw')
+            UO.set_password(pw)
+            UO.save()
+            return HttpResponse('Password Changed Successfully')
+        return HttpResponse('invalid OTP')
+    return render(request, 'otp.html')
