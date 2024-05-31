@@ -26,6 +26,12 @@ urlpatterns = [
     path('user_login/', user_login, name='user_login'),
     path('user_profile', user_profile, name='user_profile'),
     path('', home, name='home'),
+    path('user_logout/', user_logout, name='user_logout'),
+    path('changepassword/', changepassword, name='changepassword'),
+    path('otp/', otp, name='otp'),
+    path('forgetpassword/', forgetpassword, name='forgetpassword'),
+    path('forgetpasswordotp/', forgetpasswordotp, name='forgetpasswordotp'),
+    path('updatepassword', updatepassword, name='updatepassword')
 
 
 
